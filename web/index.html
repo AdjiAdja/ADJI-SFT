@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Curato: pasar NFT dengan kurasi komunitas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<style>
+:root{--bg:#030705;--tx:#eef6ee;--mu:#8da08d;--g:#9dff6b;--gl:rgba(255,255,255,.06);--bd:rgba(255,255,255,.12);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--tx);font:400 16px/1.6 "Outfit",system-ui,sans-serif}
+a{color:inherit}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px clamp(16px,4vw,48px);background:linear-gradient(var(--bg),transparent)}
+.logo{display:block;line-height:0}.logo img{display:block;height:34px;width:auto}
+.pill{display:flex;gap:4px;background:var(--gl);border:1px solid var(--bd);border-radius:999px;padding:4px;backdrop-filter:blur(12px)}
+.pill a{padding:6px 16px;border-radius:999px;color:var(--mu);text-decoration:none;font-size:14px}
+.pill a.on{color:var(--tx);background:rgba(255,255,255,.1)}
+.btn{display:inline-flex;align-items:center;gap:12px;font:500 14px "Outfit",sans-serif;color:var(--tx);background:var(--gl);border:1px solid var(--bd);border-radius:16px;padding:6px 6px 6px 18px;cursor:pointer;backdrop-filter:blur(12px)}
+.btn.s{padding:8px 18px}
+.btn:disabled{opacity:.4}
+.btn:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+.ico{width:32px;height:32px;border-radius:11px;background:#fff;color:#000;display:grid;place-items:center}
+.hero{position:relative;min-height:calc(100svh - 76px);overflow:hidden;text-align:center;padding-top:6vh}
+.hero small{color:var(--mu);font-size:14px}
+.hero h1{font:200 clamp(72px,17vw,210px)/1 "Outfit",sans-serif;letter-spacing:-.03em;margin:.05em 0 0;background:linear-gradient(180deg,#fff 15%,#c4ffa5 55%,rgba(157,255,107,.15));-webkit-background-clip:text;background-clip:text;color:transparent;position:relative;z-index:2}
+.globe{position:absolute;left:50%;top:40%;width:min(1200px,160vw);aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle at 50% 6%,rgba(190,255,130,.95),rgba(70,170,55,.6) 16%,rgba(10,55,18,.95) 42%,#030705 68%);box-shadow:0 -30px 140px rgba(120,255,80,.4),inset 0 24px 70px rgba(210,255,170,.5)}
+.globe::after{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-linear-gradient(60deg,transparent 0 48px,rgba(200,255,160,.2) 48px 49px),repeating-linear-gradient(-60deg,transparent 0 48px,rgba(200,255,160,.2) 48px 49px),radial-gradient(rgba(230,255,210,.4) 1.2px,transparent 1.6px) 0 0/14px 14px;-webkit-mask:radial-gradient(circle at 50% 12%,#000,transparent 60%);mask:radial-gradient(circle at 50% 12%,#000,transparent 60%)}
+.chips{position:absolute;inset:0;z-index:3}
+.chip{position:absolute;left:var(--x);top:var(--y);display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:16px;background:rgba(8,22,10,.55);border:1px solid var(--bd);backdrop-filter:blur(10px);font-size:14px}
+.chip i{width:26px;height:26px;border-radius:50%;background:rgba(157,255,107,.18);color:var(--g);display:grid;place-items:center;font-style:normal;font-size:13px}
+.cta{position:absolute;right:22%;top:36%;z-index:3}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
+h2{font:300 clamp(32px,5vw,52px)/1.1 "Outfit",sans-serif;letter-spacing:-.02em;margin:0 0 8px}
+.mu{color:var(--mu)}.mono{font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px;margin-top:28px}
+.glass{background:var(--gl);border:1px solid var(--bd);border-radius:24px;padding:14px;backdrop-filter:blur(10px)}
+.art{aspect-ratio:1;border-radius:16px;position:relative;margin-bottom:12px}
+.pin{position:absolute;left:10px;top:10px;background:var(--g);color:#06220a;font-size:13px;font-weight:600;padding:2px 10px;border-radius:999px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.bar{height:10px;background:rgba(255,255,255,.1);border-radius:9px;margin:8px 0;overflow:hidden}.bar i{display:block;height:100%;background:var(--g);border-radius:9px;transition:width .4s}
+.col{display:grid;gap:16px;margin-top:24px}
+input{font:inherit;color:var(--tx);background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:14px;padding:10px 14px;min-width:0;width:100%}
+.form{display:grid;gap:12px;max-width:460px;margin-top:24px}
+dialog{border:1px solid var(--bd);border-radius:24px;padding:26px;max-width:440px;background:#0a140c;color:var(--tx)}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+#st{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;background:rgba(10,25,12,.9);border:1px solid var(--bd);border-radius:14px;padding:8px 16px;font-size:14px;max-width:92vw}
+#st:empty{display:none}
+@media(max-width:760px){nav{flex-wrap:wrap}.pill{order:3;width:100%;justify-content:center}.chips{position:relative;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:240px 16px 40px}.chip{position:static}.cta{position:static;margin-top:20px}.globe{top:30%}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="logo" href="#beranda" aria-label="Curato, ke beranda"><img src="data:image/png;base64,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" alt="Curato" width="101" height="34"></a>
+  <div class="pill"><a href="#beranda">Beranda</a><a href="#marketplace">Marketplace</a><a href="#kurasi">Kurasi</a><a href="#mint">Cetak</a></div>
+  <button class="btn" id="cx" data-a="connect"><span id="cxt">Hubungkan wallet</span><span class="ico" id="ar"></span></button>
+</nav>
+<main id="app"></main>
+<footer class="wrap mu" style="padding-top:0;font-size:14px" id="mode"></footer>
+<dialog id="dlg"><div id="pv"></div></dialog>
+<div id="st" role="status" aria-live="polite"></div>
+
+<script>
+/* Isi alamat kontrak setelah deploy ke Base Sepolia. Kosong = mode demo. */
+const CFG={chainId:84532,hex:"0x14a34",name:"Base Sepolia",rpc:"https://sepolia.base.org",nft:"",market:"",cur:""};
+const ABI={
+nft:["function mint(string uri,uint96 royaltyBps) returns (uint256)","function nextId() view returns (uint256)","function ownerOf(uint256) view returns (address)","function setApprovalForAll(address,bool)","function isApprovedForAll(address,address) view returns (bool)"],
+market:["function count() view returns (uint256)","function listings(uint256) view returns (address seller,address nft,uint256 id,uint256 price,bool active)","function list(address,uint256,uint256) returns (uint256)","function buy(uint256) payable"],
+cur:["function round() view returns (uint256)","function candidatesLength() view returns (uint256)","function candidates(uint256) view returns (address)","function votesFor(uint256,address) view returns (uint256)","function cast(uint256,address,address) view returns (uint256)","function spent(uint256,address) view returns (uint256)","function propose(address)","function vote(address,uint256)"]};
+const $=s=>document.querySelector(s);
+const live=()=>CFG.nft&&CFG.market&&CFG.cur;
+const AR='<svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 11L11 3M5 3h6v6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>';
+const short=a=>a.slice(0,6)+"…"+a.slice(-4);
+const st=t=>{$("#st").textContent=t};
+const DEMO=[["Fajar Lanskap #01","Nusantara Dawn",.05],["Batik Piksel #07","Batik Piksel",.12],["Wayang Neon #03","Wayang Neon",.25],["Fajar Lanskap #02","Nusantara Dawn",.07],["Batik Piksel #19","Batik Piksel",.09],["Wayang Neon #11","Wayang Neon",.31]].map((n,i)=>({name:n[0],col:n[1],price:n[2],id:i}));
+const S={items:[],cands:[],spent:0,my:[],acct:null,sg:null};
+const hue=n=>[...n].reduce((a,c)=>a+c.charCodeAt(0)*7,0)%360;
+const art=n=>{const h=100+hue(n)%90;return `background:radial-gradient(circle at 30% 25%,hsl(${h},85%,68%),transparent 55%),linear-gradient(145deg,hsl(${h+30},70%,40%),hsl(${h+70},60%,14%))`};
+const rp=()=>new ethers.JsonRpcProvider(CFG.rpc);
+const C=(k,p)=>new ethers.Contract(CFG[k],ABI[k],p);
+
+async function load(){
+  if(!live()){S.items=DEMO;S.cands=[{a:"d1",name:"Nusantara Dawn",v:42,mine:0},{a:"d2",name:"Batik Piksel",v:31,mine:0},{a:"d3",name:"Wayang Neon",v:18,mine:0}].map(c=>S.cands.find(x=>x.a===c.a)||c);return}
+  const p=rp(),m=C("market",p),cu=C("cur",p),n=C("nft",p);
+  const cnt=Number(await m.count());S.items=[];
+  for(let i=1;i<=cnt;i++){const l=await m.listings(i);if(l.active)S.items.push({lid:i,name:"Curato #"+l.id,col:short(l.nft),price:ethers.formatEther(l.price),raw:l.price,id:Number(l.id)})}
+  const r=await cu.round(),len=Number(await cu.candidatesLength());S.cands=[];
+  for(let i=0;i<len;i++){const a=await cu.candidates(i);S.cands.push({a,name:short(a),v:Number(await cu.votesFor(r,a)),mine:S.acct?Number(await cu.cast(r,S.acct,a)):0})}
+  if(S.acct){S.spent=Number(await cu.spent(r,S.acct));const t=Number(await n.nextId());S.my=[];for(let i=0;i<t;i++)if((await n.ownerOf(i)).toLowerCase()===S.acct.toLowerCase())S.my.push(i)}
+}
+
+const top=()=>[...S.cands].sort((a,b)=>b.v-a.v)[0];
+const card=(it,i)=>`<article class="glass"><div class="art" style="${art(it.col)}">${top()&&top().name===it.col?'<span class="pin">Pilihan komunitas</span>':""}</div><b>${it.name}</b><div class="mu" style="font-size:14px;margin-bottom:10px">${it.col}</div><div class="row"><b class="mono">${it.price} ETH</b><button class="btn s" data-a="buy" data-i="${i}">Beli</button></div></article>`;
+
+const V={
+beranda:()=>`<section class="hero"><small>Marketplace NFT generasi baru dengan kurasi komunitas</small><h1>Curato</h1><div class="globe"></div>
+<div class="chips"><div class="chip" style="--x:24%;--y:60%"><i>⬡</i>Cetak NFT dengan royalti sendiri</div><div class="chip" style="--x:44%;--y:50%"><i>◎</i>Kurasi lewat quadratic voting</div><div class="chip" style="--x:66%;--y:62%"><i>⇅</i>Fee 1%, tanpa biaya tersembunyi</div><div class="chip" style="--x:40%;--y:76%"><i>✓</i>Pratinjau sebelum membayar</div>
+<a class="btn cta" href="#marketplace">Jelajahi pasar<span class="ico">${AR}</span></a></div></section>
+<section class="wrap"><h2>Cara kerja</h2><p class="mu">Tiga langkah, semuanya dari wallet-mu.</p><div class="grid"><div class="glass"><h3 style="font-weight:500">Cetak</h3><p class="mu">Unggah metadata, tentukan royalti hingga 10%. Kreator dibayar otomatis setiap kali karyanya terjual.</p></div><div class="glass"><h3 style="font-weight:500">Jual</h3><p class="mu">NFT tetap di wallet-mu sampai ada pembeli. Pembeli melihat rincian pembayaran sebelum menandatangani.</p></div><div class="glass"><h3 style="font-weight:500">Kurasi</h3><p class="mu">Pemegang NFT mendapat 100 kredit per minggu. Suara ke-n berbiaya 2n−1 kredit, jadi tidak ada satu wallet yang menguasai.</p></div></div></section>`,
+marketplace:()=>`<section class="wrap"><h2>Marketplace</h2><p class="mu">${S.items.length} NFT dijual. Koleksi dengan suara terbanyak tampil di atas.</p><div class="grid">${[...S.items].sort((a,b)=>(top()&&top().name===b.col)-(top()&&top().name===a.col)).map((it,i)=>card(it,S.items.indexOf(it))).join("")||'<p class="mu">Belum ada listing. Cetak NFT lalu jual dari halaman Cetak.</p>'}</div></section>`,
+kurasi:()=>{const mx=Math.max(1,...S.cands.map(c=>c.v));return `<section class="wrap"><h2>Kurasi minggu ini</h2><p class="mu">Kreditmu: <b class="mono" style="color:var(--g)">${100-S.spent}</b> dari 100. Hanya pemegang NFT Curato yang bisa memilih.</p><div class="col">${[...S.cands].sort((a,b)=>b.v-a.v).map(c=>`<div class="glass"><div class="row"><b>${c.name}</b><span class="mono">${c.v} suara</span></div><div class="bar"><i style="width:${c.v/mx*100}%"></i></div><div class="row"><span class="mu">Suaramu: ${c.mine}</span><button class="btn s" data-a="vote" data-c="${c.a}" ${S.spent+2*c.mine+1>100?"disabled":""}>Beri 1 suara (${2*c.mine+1} kredit)</button></div></div>`).join("")||'<p class="mu">Belum ada koleksi yang diusulkan.</p>'}</div>
+${live()?'<div class="form"><input id="pa" placeholder="Alamat kontrak koleksi (0x…)"><button class="btn s" data-a="propose">Usulkan koleksi</button></div>':""}</section>`},
+mint:()=>`<section class="wrap"><h2>Cetak NFT</h2><p class="mu">${live()?"Karyamu dicetak ke Base Sepolia (testnet, tanpa uang asli).":"Mode demo: isi alamat kontrak di CFG agar tombol ini mengirim transaksi."}</p><div class="form"><input id="uri" placeholder="URI metadata, mis. ipfs://…"><input id="roy" type="number" min="0" max="10" step="0.5" value="5" aria-label="Royalti dalam persen"><button class="btn s" data-a="mint">Cetak NFT</button></div>
+${S.my.length?`<h2 style="margin-top:48px;font-size:28px">NFT milikmu</h2><div class="col">${S.my.map(id=>`<div class="glass row"><b>Curato #${id}</b><span class="row"><input id="pr${id}" placeholder="Harga (ETH)" style="width:130px"><button class="btn s" data-a="sell" data-id="${id}">Jual</button></span></div>`).join("")}</div>`:""}</section>`};
+
+function route(keep){const h=(location.hash||"#beranda").slice(1),v=V[h]?h:"beranda";$("#app").innerHTML=V[v]();document.querySelectorAll(".pill a").forEach(a=>a.classList.toggle("on",a.hash==="#"+v));$("#mode").textContent=live()?"Terhubung ke "+CFG.name+" (testnet).":"Mode demo dengan data contoh. Belum terhubung ke kontrak.";if(!keep)scrollTo(0,0)}
+
+async function send(label,fn){if(live()&&!S.sg){st("Hubungkan wallet dulu.");return}try{st(label+"…");const t=await fn();if(t)await t.wait();st(label+" berhasil.");await load();route(1)}catch(e){st("Gagal: "+(e.shortMessage||e.message))}}
+const sgC=k=>C(k,S.sg);
+
+async function connect(){
+  if(!window.ethereum){st("Wallet tidak terdeteksi. Pasang MetaMask lalu muat ulang halaman.");return}
+  try{const bp=new ethers.BrowserProvider(window.ethereum);await bp.send("eth_requestAccounts",[]);
+    try{await bp.send("wallet_switchEthereumChain",[{chainId:CFG.hex}])}catch(e){await bp.send("wallet_addEthereumChain",[{chainId:CFG.hex,chainName:CFG.name,rpcUrls:[CFG.rpc],nativeCurrency:{name:"ETH",symbol:"ETH",decimals:18},blockExplorerUrls:["https://sepolia.basescan.org"]}])}
+    S.sg=await new ethers.BrowserProvider(window.ethereum).getSigner();S.acct=await S.sg.getAddress();$("#cxt").textContent=short(S.acct);await load();route(1);st("")}
+  catch(e){st("Koneksi wallet dibatalkan.")}
+}
+
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;
+  if(a==="connect")connect();
+  if(a==="vote"){const c=S.cands.find(x=>x.a===b.dataset.c);if(!live()){S.spent+=2*c.mine+1;c.mine++;c.v++;route(1)}else send("Voting",()=>sgC("cur").vote(c.a,1))}
+  if(a==="propose")send("Usulan",()=>sgC("cur").propose($("#pa").value.trim()));
+  if(a==="mint"){const bps=Math.round(parseFloat($("#roy").value||"0")*100);send("Cetak NFT",()=>live()?sgC("nft").mint($("#uri").value.trim(),bps):st("Mode demo: belum ada kontrak."))}
+  if(a==="sell"){const id=+b.dataset.id,pr=$("#pr"+id).value;send("Listing",async()=>{const n=sgC("nft");if(!(await n.isApprovedForAll(S.acct,CFG.market))){await(await n.setApprovalForAll(CFG.market,true)).wait()}return sgC("market").list(CFG.nft,id,ethers.parseEther(pr))})}
+  if(a==="buy"){const it=S.items[+b.dataset.i],p=+it.price;
+    $("#pv").innerHTML=`<h2 style="font-size:26px">Periksa sebelum membayar</h2><p>Kamu membayar <b>${it.price} ETH</b> dan menerima <b>1 NFT: ${it.name}</b>.</p><ul><li>Curato menerima ${(p*.01).toFixed(4)} ETH (biaya 1%)</li><li>Kreator menerima royalti sesuai pengaturannya (ERC-2981)</li><li>Penjual menerima sisanya</li></ul><p class="mu">Transaksi ini tidak meminta izin atas aset lain di wallet-mu.</p><div class="row"><button class="btn s" id="no">Batal</button><button class="btn s" id="ok">Konfirmasi di wallet</button></div>`;
+    $("#dlg").showModal();$("#no").onclick=()=>$("#dlg").close();
+    $("#ok").onclick=()=>{$("#dlg").close();if(!live())st("Mode demo: isi alamat kontrak di CFG untuk transaksi sungguhan.");else send("Pembelian",()=>sgC("market").buy(it.lid,{value:it.raw}))}}
+});
+$("#ar").innerHTML=AR;
+addEventListener("hashchange",()=>route());
+load().then(()=>route()).catch(e=>{st("Gagal membaca kontrak: "+(e.shortMessage||e.message));route()});
+</script>
+</body>
+</html>
